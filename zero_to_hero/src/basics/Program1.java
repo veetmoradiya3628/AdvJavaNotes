@@ -39,6 +39,12 @@ public class Program1 {
         System.out.println(oct);
         System.out.println(hex);
 
+        int age = (int)(Math.random() * 100);
+        boolean isEligible = (age >= 18) ? true : false;
+        System.out.println("isEligible : " + isEligible);
 
+        double num = 10.0;
+        double den = 3.0;
+        System.out.println(num/ den);
     }
 }

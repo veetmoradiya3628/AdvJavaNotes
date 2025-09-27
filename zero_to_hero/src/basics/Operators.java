@@ -2,6 +2,8 @@ package basics;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Arrays;
+import java.util.Scanner;
 
 public class Operators {
     public static void main(String[] args) {
@@ -38,5 +40,15 @@ public class Operators {
         System.out.println((int)(Math.random() * 100));
         System.out.println(Math.random() * 100);
 
+        int[] arr1 = {1, 2, 3};
+        int[] arr2 = {1, 2, 3};
+        System.out.println("arr1 == arr2 : " + (arr1 == arr2));
+        System.out.println("Arrays class compare : " + (Arrays.equals(arr1, arr2)));
+        arr1 = arr2;
+        System.out.println("arr1 == arr2 : " + (arr1 == arr2));
+
+        System.out.println("Please enter word : ");
+        String word = new Scanner(System.in).next();
+        System.out.println(word);
     }
 }
