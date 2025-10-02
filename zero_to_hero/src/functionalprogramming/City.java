@@ -4,6 +4,10 @@ public class City {
     private double longitude;
     private  double latitude;
 
+    public City() {
+
+    }
+
     public City(double longitude, double latitude) {
         this.longitude = longitude;
         this.latitude = latitude;
