@@ -80,3 +80,19 @@ CREATE TABLE `user` (
 LOCK TABLES `user` WRITE;
 INSERT INTO `user` VALUES (1,'Sergey','Ivanov','s.ivanov@email.com',NULL,400.60,'1234567890123456'),(3,'Petr','Skomorohov','p.skomorohov@email.com',3,100.25,'4444444444444444'),(11,'Andrey','Pavlenko','a.pavlenko@email.com',NULL,754.28,'5555555555555555'),(12,'John','Smith','john.smith@email.com',4,1000.75,'6666666666666666'),(17,'Yegor','Hromov','y.hromov@email.com',4,0.00,'7777777777777777'),(18,'Vasyl','Leonenko','v.leonenko@email.com',6,0.00,'8888888888888888');
 UNLOCK TABLES;
+
+-- Procedure creation
+
+DELIMITER $$
+
+CREATE PROCEDURE select_user_by_email(IN p_email VARCHAR(255))
+BEGIN
+    SELECT id, first_name, last_name, email
+    FROM user
+    WHERE email = p_email COLLATE utf8mb4_unicode_ci;
+END$$
+
+DELIMITER ;
+
+
+CALL select_user_by_email('veetmoradiya@google.com');
