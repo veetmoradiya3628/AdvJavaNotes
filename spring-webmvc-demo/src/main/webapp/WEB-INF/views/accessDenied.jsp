@@ -1,21 +1,20 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java"%>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
 
 <html>
 <head>
-    <title>Home - Spring MVC Demo</title>
+    <title>Access Denied - Spring MVC Demo</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
         header, nav, footer { background: #f0f0f0; padding: 10px 20px; }
         nav a, nav form button { margin-right: 10px; text-decoration: none; }
-        main { padding: 20px; }
+        main { padding: 20px; color: red; }
         button { padding: 5px 10px; }
     </style>
 </head>
 <body>
     <header>
-        <h1>Spring MVC Demo</h1>
+        <h1>Access Denied</h1>
         <nav>
             <a href="${pageContext.request.contextPath}/">Home</a>
             <sec:authorize access="hasRole('USER')">
@@ -33,7 +32,7 @@
     </header>
 
     <main>
-        <p>Hello, <sec:authentication property="name" />! Welcome to the Spring MVC Demo home page.</p>
+        <p>Sorry, <sec:authentication property="name" />! You do not have permission to access this page.</p>
     </main>
 
     <footer>

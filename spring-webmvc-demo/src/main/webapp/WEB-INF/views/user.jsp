@@ -1,10 +1,9 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java"%>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
 
 <html>
 <head>
-    <title>Home - Spring MVC Demo</title>
+    <title>User Page - Spring MVC Demo</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
         header, nav, footer { background: #f0f0f0; padding: 10px 20px; }
@@ -15,16 +14,9 @@
 </head>
 <body>
     <header>
-        <h1>Spring MVC Demo</h1>
+        <h1>User Page</h1>
         <nav>
             <a href="${pageContext.request.contextPath}/">Home</a>
-            <sec:authorize access="hasRole('USER')">
-                <a href="${pageContext.request.contextPath}/user">User Page</a>
-            </sec:authorize>
-            <sec:authorize access="hasRole('ADMIN')">
-                <a href="${pageContext.request.contextPath}/admin">Admin Page</a>
-            </sec:authorize>
-
             <form action="${pageContext.request.contextPath}/logout" method="post" style="display:inline;">
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
                 <button type="submit">Logout</button>
@@ -33,7 +25,7 @@
     </header>
 
     <main>
-        <p>Hello, <sec:authentication property="name" />! Welcome to the Spring MVC Demo home page.</p>
+        <p>Welcome, <sec:authentication property="name" />! You have USER role.</p>
     </main>
 
     <footer>
