@@ -27,6 +27,7 @@ jobs:
           ${{ runner.os }}-m2-
 
     - name: Build Project
+      working-directory: simple-java-app
       run: mvn -B clean package
 
     - name: Upload JAR artifact
