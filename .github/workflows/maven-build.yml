@@ -1,8 +1,12 @@
-name: Build maven subproject
+name: Build Maven Subproject
 
 on:
   workflow_dispatch:
-
+    inputs:
+      projectDir:
+        description: 'Path to the Maven project directory (where pom.xml exists)'
+        required: true
+        default: 'simple-java-app'
 
 jobs:
   build:
@@ -22,16 +26,16 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.m2
-        key: ${{ runner.os }}-m2-${{ hashFiles('pom.xml') }}
+        key: ${{ runner.os }}-m2-${{ hashFiles(format('{0}/pom.xml', inputs.projectDir)) }}
         restore-keys: |
           ${{ runner.os }}-m2-
 
     - name: Build Project
-      working-directory: simple-java-app
+      working-directory: ${{ github.event.inputs.projectDir }}
       run: mvn -B clean package
 
     - name: Upload JAR artifact
       uses: actions/upload-artifact@v4
       with:
-        name: simple-java-app-jar
-        path: simple-java-app/target/*.jar
+        name: built-jar
+        path: ${{ github.event.inputs.projectDir }}/target/*.jar
