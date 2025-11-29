@@ -2,6 +2,8 @@ package com.luv2code.springmvc;
 
 import com.luv2code.springmvc.models.CollegeStudent;
 import com.luv2code.springmvc.models.GradebookCollegeStudent;
+import com.luv2code.springmvc.models.MathGrade;
+import com.luv2code.springmvc.repository.MathGradesDao;
 import com.luv2code.springmvc.repository.StudentDao;
 import com.luv2code.springmvc.service.StudentAndGradeService;
 import org.junit.jupiter.api.*;
@@ -20,17 +22,14 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@TestPropertySource("/application.properties")
+@TestPropertySource("/application-test.properties")
 @AutoConfigureMockMvc
 @SpringBootTest
 public class GradebookControllerTest {
@@ -45,6 +44,12 @@ public class GradebookControllerTest {
     @Autowired
     private StudentDao studentDao;
 
+    @Autowired
+    private MathGradesDao mathGradesDao;
+
+    @Autowired
+    private StudentAndGradeService studentService;
+
     @Mock
     private StudentAndGradeService studentCreateServiceMock;
 
@@ -52,9 +57,26 @@ public class GradebookControllerTest {
     @Value("${sql.scripts.create.student}")
     private String sqlAddStudent;
 
+    @Value("${sql.scripts.create.math.grade}")
+    private String sqlAddMathGrade;
+
+    @Value("${sql.scripts.create.science.grade}")
+    private String sqlAddScienceGrade;
+
+    @Value("${sql.scripts.create.history.grade}")
+    private String sqlAddHistoryGrade;
+
     @Value("${sql.scripts.delete.student}")
     private String sqlDeleteStudent;
 
+    @Value("${sql.scripts.delete.math.grade}")
+    private String sqlDeleteMathGrade;
+
+    @Value("${sql.scripts.delete.science.grade}")
+    private String sqlDeleteScienceGrade;
+
+    @Value("${sql.scripts.delete.history.grade}")
+    private String sqlDeleteHistoryGrade;
 
     @BeforeAll
     public static void setup() {
@@ -67,6 +89,10 @@ public class GradebookControllerTest {
     @BeforeEach
     public void beforeEach() {
         jdbc.execute(sqlAddStudent);
+
+        jdbc.execute(sqlAddMathGrade);
+        jdbc.execute(sqlAddHistoryGrade);
+        jdbc.execute(sqlAddScienceGrade);
     }
 
     @Test
@@ -139,8 +165,127 @@ public class GradebookControllerTest {
         ModelAndViewAssert.assertViewName(mav, "error");
     }
 
+    @Test
+    public void studentInformationHttpRequest() throws Exception {
+        assertTrue(studentDao.findById(1).isPresent());
+        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.get("/studentInformation/{id}", 1))
+                .andExpect(status().isOk()).andReturn();
+        ModelAndView mav = mvcResult.getModelAndView();
+        assertNotNull(mav);
+        ModelAndViewAssert.assertViewName(mav, "studentInformation");
+    }
+
+    @Test
+    public void studentInformationHttpStudentDoesNotExistRequest() throws Exception {
+        assertFalse(studentDao.findById(0).isPresent());
+
+        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.get("/studentInformation/{id}", 0))
+                .andExpect(status().isOk()).andReturn();
+        ModelAndView mav = mvcResult.getModelAndView();
+        assertNotNull(mav);
+        ModelAndViewAssert.assertViewName(mav, "error");
+    }
+
+    @Test
+    public void createValidGradeHttpRequest() throws Exception {
+        assertTrue(studentDao.findById(1).isPresent());
+
+        GradebookCollegeStudent student = studentService.studentInformation(1);
+        assertEquals(1, student.getStudentGrades().getMathGradeResults().size());
+
+        MvcResult mvcResult = this.mockMvc.perform(post("/grades")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("grade", "85.00")
+                        .param("gradeType", "math")
+                        .param("studentId", "1"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ModelAndView mav = mvcResult.getModelAndView();
+
+        assertNotNull(mav);
+        ModelAndViewAssert.assertViewName(mav, "studentInformation");
+
+        student = studentService.studentInformation(1);
+        assertEquals(2, student.getStudentGrades().getMathGradeResults().size());
+    }
+
+    @Test
+    public void createAValidGradeHttpRequestStudentDoesNotExistEmptyResponse() throws Exception {
+        MvcResult mvcResult = this.mockMvc.perform(post("/grades")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("grade", "85.00")
+                        .param("gradeType", "math")
+                        .param("studentId", "-1"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ModelAndView mav = mvcResult.getModelAndView();
+
+        assertNotNull(mav);
+        ModelAndViewAssert.assertViewName(mav, "error");
+    }
+
+    @Test
+    public void createANonValidGradeHttpRequestGradeTypeDoesNotExistEmptyResponse() throws Exception {
+        MvcResult mvcResult = this.mockMvc.perform(post("/grades")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("grade", "85.00")
+                        .param("gradeType", "physics")
+                        .param("studentId", "1"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ModelAndView mav = mvcResult.getModelAndView();
+
+        assertNotNull(mav);
+        ModelAndViewAssert.assertViewName(mav, "error");
+    }
+
+    @Test
+    public void deleteAValidGradeHttpRequest() throws Exception {
+        Optional<MathGrade> mathGrade = mathGradesDao.findById(1);
+
+        assertTrue(mathGrade.isPresent());
+
+        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.get("/grades/{id}/{gradeType}", 1, "math"))
+                .andExpect(status().isOk()).andReturn();
+
+        ModelAndView mav = mvcResult.getModelAndView();
+        assertNotNull(mav);
+        ModelAndViewAssert.assertViewName(mav, "studentInformation");
+        mathGrade = mathGradesDao.findById(1);
+        assertFalse(mathGrade.isPresent());
+    }
+
+    @Test
+    public void deleteAValidGradeHttpRequestStudentIdDoesNotExistEmptyResponse() throws Exception {
+        Optional<MathGrade> mathGrade = mathGradesDao.findById(2);
+        assertFalse(mathGrade.isPresent());
+
+        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.get("/grades/{id}/{gradeType}", 2, "math"))
+                .andExpect(status().isOk()).andReturn();
+
+        ModelAndView mav = mvcResult.getModelAndView();
+        assertNotNull(mav);
+        ModelAndViewAssert.assertViewName(mav, "error");
+    }
+
+    @Test
+    public void deleteAValidGradeHttpRequestInvalidSubjectEmptyResponse() throws Exception {
+        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.get("/grades/{id}/{gradeType}", 1, "physics"))
+                .andExpect(status().isOk()).andReturn();
+
+        ModelAndView mav = mvcResult.getModelAndView();
+        assertNotNull(mav);
+        ModelAndViewAssert.assertViewName(mav, "error");
+    }
+
     @AfterEach
     public void setupAfterTransaction() {
         jdbc.execute(sqlDeleteStudent);
+        jdbc.execute(sqlDeleteMathGrade);
+        jdbc.execute(sqlDeleteScienceGrade);
+        jdbc.execute(sqlDeleteHistoryGrade);
     }
 }
