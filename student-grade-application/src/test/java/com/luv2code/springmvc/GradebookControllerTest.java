@@ -7,6 +7,7 @@ import com.luv2code.springmvc.service.StudentAndGradeService;
 import org.junit.jupiter.api.*;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -40,12 +41,20 @@ public class GradebookControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-    
+
     @Autowired
     private StudentDao studentDao;
 
     @Mock
     private StudentAndGradeService studentCreateServiceMock;
+
+
+    @Value("${sql.scripts.create.student}")
+    private String sqlAddStudent;
+
+    @Value("${sql.scripts.delete.student}")
+    private String sqlDeleteStudent;
+
 
     @BeforeAll
     public static void setup() {
@@ -56,9 +65,8 @@ public class GradebookControllerTest {
     }
 
     @BeforeEach
-    public void beforeEach(){
-        jdbc.execute("insert into student(firstname, lastname, email_address) " +
-                "values('Eric', 'Roby', 'eric.roby@msi.com')");
+    public void beforeEach() {
+        jdbc.execute(sqlAddStudent);
     }
 
     @Test
@@ -109,7 +117,7 @@ public class GradebookControllerTest {
 
         MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders
                         .get("/delete/student/{id}", 1))
-                        .andExpect(status().isOk()).andReturn();
+                .andExpect(status().isOk()).andReturn();
 
         ModelAndView mvc = mvcResult.getModelAndView();
 
@@ -122,7 +130,7 @@ public class GradebookControllerTest {
     @Test
     public void deleteStudentHttpRequestErrorPage() throws Exception {
         MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders
-                .get("/delete/student/{id}", -1))
+                        .get("/delete/student/{id}", -1))
                 .andExpect(status().isOk()).andReturn();
 
         ModelAndView mav = mvcResult.getModelAndView();
@@ -133,7 +141,6 @@ public class GradebookControllerTest {
 
     @AfterEach
     public void setupAfterTransaction() {
-        jdbc.execute("DELETE FROM student");
-        jdbc.execute("ALTER TABLE student ALTER COLUMN ID RESTART WITH 1");
+        jdbc.execute(sqlDeleteStudent);
     }
 }
